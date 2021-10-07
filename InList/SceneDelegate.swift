@@ -2,7 +2,7 @@
 //  SceneDelegate.swift
 //  InList
 //
-//  Created by Marcelo Rodrigues de Sousa on 05/10/21.
+//  Created by Giovanna Rodrigues on 05/10/21.
 //
 
 import UIKit

@@ -2,7 +2,7 @@
 //  ViewController.swift
 //  InList
 //
-//  Created by Marcelo Rodrigues de Sousa on 05/10/21.
+//  Created by Giovanna Rodrigues on 05/10/21.
 //
 
 import UIKit
@@ -10,6 +10,8 @@ import UIKit
 class ToDoListViewController: UITableViewController{
 
     var toDoList = ["1","2","3"]
+    let defaults = UserDefaults()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.delegate = self
@@ -40,6 +42,13 @@ class ToDoListViewController: UITableViewController{
             tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
         }
         tableView.deselectRow(at: indexPath, animated: true)
+    }
+    
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == UITableViewCell.EditingStyle.delete {
+            toDoList.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.automatic)
+        }
     }
     
     //Add itens

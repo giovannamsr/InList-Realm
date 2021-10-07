@@ -7,9 +7,9 @@
 
 import UIKit
 
-class ToDoListViewController: UITableViewController {
+class ToDoListViewController: UITableViewController{
 
-    let toDoList = ["1","2","3"]
+    var toDoList = ["1","2","3"]
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.delegate = self
@@ -44,10 +44,22 @@ class ToDoListViewController: UITableViewController {
     
     //Add itens
     
-    @IBAction func addPressed(_ sender: UIBarButtonItem) {
+    @IBAction func addPressed(_ sender: UIBarButtonItem){
+        
+        var textField = UITextField()
         let alert = UIAlertController(title: "Add New Item", message: "", preferredStyle: .alert)
-        let action = UIAlertAction(title: "Add Item", style: .default) { action in
-            print("success")
+        
+        let action = UIAlertAction(title: "Add", style: .default){ (action) in
+            if let text = textField.text{
+                if text != ""{
+                    self.toDoList.append(text)
+                    self.tableView.reloadData()
+                }
+            }
+        }
+        alert.addTextField{ (alertTextField) in
+            alertTextField.placeholder = "Description"
+            textField = alertTextField
         }
         alert.addAction(action)
         present(alert, animated: true, completion: nil)

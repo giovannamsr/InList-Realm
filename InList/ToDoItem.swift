@@ -2,7 +2,7 @@
 //  ToDoItem.swift
 //  InList
 //
-//  Created by Marcelo Rodrigues de Sousa on 08/10/21.
+//  Created by Giovanna Rodrigues on 08/10/21.
 //
 
 import Foundation

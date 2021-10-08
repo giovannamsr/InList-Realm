@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ToDoItem{
+struct ToDoItem: Codable{
     
     var description: String
     var isCompleted = false

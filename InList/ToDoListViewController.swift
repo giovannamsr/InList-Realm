@@ -10,11 +10,11 @@ import UIKit
 class ToDoListViewController: UITableViewController{
 
     var toDoList = [ToDoItem]()
-    let defaults = UserDefaults()
-    let exampleCell = ToDoItem(description: "a")
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("ToDoItems.plist")
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        loadData()
         
     }
     
@@ -29,12 +29,8 @@ class ToDoListViewController: UITableViewController{
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
         
         cell.textLabel?.text = item.description
-        if item.isCompleted{
-            cell.accessoryType = .checkmark
-        }
-        else{
-            cell.accessoryType = .none
-        }
+        cell.accessoryType = item.isCompleted ? .checkmark : .none
+
         return cell
     }
     
@@ -43,29 +39,29 @@ class ToDoListViewController: UITableViewController{
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         toDoList[indexPath.row].isCompleted = !toDoList[indexPath.row].isCompleted
-        tableView.reloadData()
+        saveData()
     }
     
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == UITableViewCell.EditingStyle.delete {
             toDoList.remove(at: indexPath.row)
-            tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.automatic)
+            saveData()
         }
     }
     
-    //Add itens
+    //Add items
     
     @IBAction func addPressed(_ sender: UIBarButtonItem){
         
         var textField = UITextField()
         let alert = UIAlertController(title: "Add New Item", message: "", preferredStyle: .alert)
         
-        let action = UIAlertAction(title: "Add", style: .default){ (action) in
+        let action = UIAlertAction(title: "Add", style: .default){ [self] (action) in
             if let text = textField.text{
                 if text != ""{
                     let userNewItem = ToDoItem(description: text)
                     self.toDoList.append(userNewItem)
-                    self.tableView.reloadData()
+                    saveData()
                 }
             }
         }
@@ -78,6 +74,28 @@ class ToDoListViewController: UITableViewController{
                   
     }
     
+    func saveData(){
+        let encoder = PropertyListEncoder()
+        do{
+            let data = try encoder.encode(toDoList)
+            try data.write(to: dataFilePath!)
+        }catch{
+            print("Error encoding data!: \(error)")
+        }
+        tableView.reloadData()
+    }
+    
+    func loadData(){
+        if let data = try? Data(contentsOf: dataFilePath!){
+            let decoder = PropertyListDecoder()
+            do{
+                toDoList = try decoder.decode([ToDoItem].self, from: data)
+            }
+            catch{
+                print("Error decoding data!: \(error)")
+            }
+        }
+    }
 }
 
 

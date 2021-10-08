@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9CD8212D27108FBC008E14B9 /* ToDoItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CD8212C27108FBC008E14B9 /* ToDoItem.swift */; };
 		9CE84B92270CDBA20003BFC1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CE84B91270CDBA20003BFC1 /* AppDelegate.swift */; };
 		9CE84B94270CDBA20003BFC1 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CE84B93270CDBA20003BFC1 /* SceneDelegate.swift */; };
 		9CE84B96270CDBA20003BFC1 /* ToDoListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CE84B95270CDBA20003BFC1 /* ToDoListViewController.swift */; };
@@ -37,6 +38,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		9CD8212C27108FBC008E14B9 /* ToDoItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToDoItem.swift; sourceTree = "<group>"; };
 		9CE84B8E270CDBA20003BFC1 /* InList.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InList.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9CE84B91270CDBA20003BFC1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		9CE84B93270CDBA20003BFC1 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -104,6 +106,7 @@
 				9CE84B91270CDBA20003BFC1 /* AppDelegate.swift */,
 				9CE84B93270CDBA20003BFC1 /* SceneDelegate.swift */,
 				9CE84B95270CDBA20003BFC1 /* ToDoListViewController.swift */,
+				9CD8212C27108FBC008E14B9 /* ToDoItem.swift */,
 				9CE84B97270CDBA20003BFC1 /* Main.storyboard */,
 				9CE84B9D270CDBA50003BFC1 /* Assets.xcassets */,
 				9CE84B9F270CDBA50003BFC1 /* LaunchScreen.storyboard */,
@@ -263,6 +266,7 @@
 			files = (
 				9CE84B96270CDBA20003BFC1 /* ToDoListViewController.swift in Sources */,
 				9CE84B92270CDBA20003BFC1 /* AppDelegate.swift in Sources */,
+				9CD8212D27108FBC008E14B9 /* ToDoItem.swift in Sources */,
 				9CE84B9C270CDBA20003BFC1 /* InList.xcdatamodeld in Sources */,
 				9CE84B94270CDBA20003BFC1 /* SceneDelegate.swift in Sources */,
 			);

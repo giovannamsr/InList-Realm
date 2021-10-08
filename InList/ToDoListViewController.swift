@@ -9,12 +9,12 @@ import UIKit
 
 class ToDoListViewController: UITableViewController{
 
-    var toDoList = ["1","2","3"]
+    var toDoList = [ToDoItem]()
     let defaults = UserDefaults()
+    let exampleCell = ToDoItem(description: "a")
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        tableView.delegate = self
         
     }
     
@@ -25,23 +25,25 @@ class ToDoListViewController: UITableViewController{
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
+        let item = toDoList[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
-        cell.textLabel?.text = toDoList[indexPath.row]
         
+        cell.textLabel?.text = item.description
+        if item.isCompleted{
+            cell.accessoryType = .checkmark
+        }
+        else{
+            cell.accessoryType = .none
+        }
         return cell
     }
     
     //Table View delegate methods
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print(toDoList[indexPath.row])
-        if tableView.cellForRow(at: indexPath)?.accessoryType == .checkmark{
-            tableView.cellForRow(at: indexPath)?.accessoryType = .none
-        }
-        else{
-            tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
-        }
-        tableView.deselectRow(at: indexPath, animated: true)
+        
+        toDoList[indexPath.row].isCompleted = !toDoList[indexPath.row].isCompleted
+        tableView.reloadData()
     }
     
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
@@ -61,7 +63,8 @@ class ToDoListViewController: UITableViewController{
         let action = UIAlertAction(title: "Add", style: .default){ (action) in
             if let text = textField.text{
                 if text != ""{
-                    self.toDoList.append(text)
+                    let userNewItem = ToDoItem(description: text)
+                    self.toDoList.append(userNewItem)
                     self.tableView.reloadData()
                 }
             }

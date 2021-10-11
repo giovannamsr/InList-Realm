@@ -6,16 +6,17 @@
 //
 
 import UIKit
+import CoreData
 
 class ToDoListViewController: UITableViewController{
 
     var toDoList = [ToDoItem]()
     let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("ToDoItems.plist")
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
         loadData()
-        
     }
     
     //Table View datasource methods
@@ -28,7 +29,7 @@ class ToDoListViewController: UITableViewController{
         let item = toDoList[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
         
-        cell.textLabel?.text = item.description
+        cell.textLabel?.text = item.taskDescription
         cell.accessoryType = item.isCompleted ? .checkmark : .none
 
         return cell
@@ -44,6 +45,7 @@ class ToDoListViewController: UITableViewController{
     
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == UITableViewCell.EditingStyle.delete {
+            context.delete(toDoList[indexPath.row])
             toDoList.remove(at: indexPath.row)
             saveData()
         }
@@ -59,7 +61,8 @@ class ToDoListViewController: UITableViewController{
         let action = UIAlertAction(title: "Add", style: .default){ [self] (action) in
             if let text = textField.text{
                 if text != ""{
-                    let userNewItem = ToDoItem(description: text)
+                    let userNewItem = ToDoItem(context: context)
+                    userNewItem.taskDescription = text
                     self.toDoList.append(userNewItem)
                     saveData()
                 }
@@ -75,25 +78,20 @@ class ToDoListViewController: UITableViewController{
     }
     
     func saveData(){
-        let encoder = PropertyListEncoder()
         do{
-            let data = try encoder.encode(toDoList)
-            try data.write(to: dataFilePath!)
+            try context.save()
         }catch{
-            print("Error encoding data!: \(error)")
+            print("Error saving data: \(error)")
         }
         tableView.reloadData()
     }
     
     func loadData(){
-        if let data = try? Data(contentsOf: dataFilePath!){
-            let decoder = PropertyListDecoder()
-            do{
-                toDoList = try decoder.decode([ToDoItem].self, from: data)
-            }
-            catch{
-                print("Error decoding data!: \(error)")
-            }
+        let request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()
+        do{
+           toDoList = try context.fetch(request)
+        }catch{
+            print("Error fetching data: \(error)")
         }
     }
 }

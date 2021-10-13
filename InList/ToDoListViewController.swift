@@ -10,6 +10,7 @@ import CoreData
 
 class ToDoListViewController: UITableViewController{
 
+    @IBOutlet weak var searchBar: UISearchBar!
     var toDoList = [ToDoItem]()
     let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("ToDoItems.plist")
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
@@ -17,6 +18,7 @@ class ToDoListViewController: UITableViewController{
     override func viewDidLoad() {
         super.viewDidLoad()
         loadData()
+        searchBar.delegate = self
     }
     
     //Table View datasource methods
@@ -86,12 +88,27 @@ class ToDoListViewController: UITableViewController{
         tableView.reloadData()
     }
     
-    func loadData(){
-        let request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()
+    func loadData(with request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()){
         do{
            toDoList = try context.fetch(request)
         }catch{
             print("Error fetching data: \(error)")
+        }
+        tableView.reloadData()
+    }
+}
+
+extension ToDoListViewController: UISearchBarDelegate{
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        
+        let request : NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()
+        
+        if let userSearch = searchBar.text{
+            request.predicate = NSPredicate(format: "taskDescription CONTAINS[cd] %@", userSearch)
+            request.sortDescriptors = [NSSortDescriptor(key: "taskDescription", ascending: true)]
+            print(request)
+            loadData(with: request)
         }
     }
 }

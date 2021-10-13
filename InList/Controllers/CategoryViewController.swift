@@ -11,7 +11,9 @@ import CoreData
 class CategoryViewController: UITableViewController {
     
     var categoryList = [ToDoCategory]()
+    
     let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Category.plist")
+    
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
 
     override func viewDidLoad() {
@@ -37,10 +39,20 @@ class CategoryViewController: UITableViewController {
     //MARK: - TableView Delegate Methods
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        performSegue(withIdentifier: "goToItemsView", sender: self)
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?){
+        if segue.identifier == "goToItemsView"{
+            let destinationVC = segue.destination as! ToDoListViewController
+            if let indexPath = tableView.indexPathForSelectedRow{
+                destinationVC.selectedCategory = categoryList[indexPath.row]
+            }
+        }
         
     }
     
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath){
         if editingStyle == UITableViewCell.EditingStyle.delete {
             context.delete(categoryList[indexPath.row])
             categoryList.remove(at: indexPath.row)
@@ -50,7 +62,7 @@ class CategoryViewController: UITableViewController {
     
     //MARK: - Data Manipulation Methods
     
-    @IBAction func addPressed(_ sender: UIBarButtonItem) {
+    @IBAction func addPressed(_ sender: UIBarButtonItem){
         var textField = UITextField()
         let alert = UIAlertController(title: "Add New Category", message: "", preferredStyle: .alert)
         
@@ -65,7 +77,7 @@ class CategoryViewController: UITableViewController {
             }
         }
         alert.addTextField{ (alertTextField) in
-            alertTextField.placeholder = "Description"
+            alertTextField.placeholder = "Name"
             textField = alertTextField
         }
         alert.addAction(action)

@@ -80,6 +80,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9CD8213027177A48008E14B9 /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				9CD8212E27175556008E14B9 /* CategoryViewController.swift */,
+				9CE84B95270CDBA20003BFC1 /* ToDoListViewController.swift */,
+			);
+			path = Controllers;
+			sourceTree = "<group>";
+		};
 		9CE84B85270CDBA20003BFC1 = {
 			isa = PBXGroup;
 			children = (
@@ -105,8 +114,7 @@
 			children = (
 				9CE84B91270CDBA20003BFC1 /* AppDelegate.swift */,
 				9CE84B93270CDBA20003BFC1 /* SceneDelegate.swift */,
-				9CE84B95270CDBA20003BFC1 /* ToDoListViewController.swift */,
-				9CD8212E27175556008E14B9 /* CategoryViewController.swift */,
+				9CD8213027177A48008E14B9 /* Controllers */,
 				9CE84B97270CDBA20003BFC1 /* Main.storyboard */,
 				9CE84B9D270CDBA50003BFC1 /* Assets.xcassets */,
 				9CE84B9F270CDBA50003BFC1 /* LaunchScreen.storyboard */,

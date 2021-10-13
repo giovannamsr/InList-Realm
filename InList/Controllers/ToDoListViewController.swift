@@ -11,22 +11,30 @@ import CoreData
 class ToDoListViewController: UITableViewController{
 
     @IBOutlet weak var searchBar: UISearchBar!
+    
     var toDoList = [ToDoItem]()
+    
+    var selectedCategory: ToDoCategory?{
+        didSet{
+            loadData()
+        }
+    }
+    
     let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("ToDoItems.plist")
+    
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        loadData()
         searchBar.delegate = self
     }
     
-    //Table View datasource methods
+//MARK: - TableView Datasource Methods
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int{
         return toDoList.count
     }
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell{
         
         let item = toDoList[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
@@ -37,15 +45,15 @@ class ToDoListViewController: UITableViewController{
         return cell
     }
     
-    //Table View delegate methods
+//MARK: - TableView Delegate Methods
     
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath){
         
         toDoList[indexPath.row].isCompleted = !toDoList[indexPath.row].isCompleted
         saveData()
     }
     
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath){
         if editingStyle == UITableViewCell.EditingStyle.delete {
             context.delete(toDoList[indexPath.row])
             toDoList.remove(at: indexPath.row)
@@ -53,7 +61,7 @@ class ToDoListViewController: UITableViewController{
         }
     }
     
-    //Add items
+    //MARK: - Data Manipulation Methods
     
     @IBAction func addPressed(_ sender: UIBarButtonItem){
         
@@ -65,6 +73,7 @@ class ToDoListViewController: UITableViewController{
                 if text != ""{
                     let userNewItem = ToDoItem(context: context)
                     userNewItem.taskDescription = text
+                    userNewItem.itemCategory = self.selectedCategory
                     self.toDoList.append(userNewItem)
                     saveData()
                 }
@@ -88,7 +97,17 @@ class ToDoListViewController: UITableViewController{
         tableView.reloadData()
     }
     
-    func loadData(with request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()){
+    func loadData(with request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest(), predicate: NSPredicate? = nil){
+        
+        let categoryPredicate = NSPredicate(format: "itemCategory.categoryName MATCHES %@", selectedCategory!.categoryName!)
+        
+        if let searchPredicate = predicate{
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, searchPredicate])
+        }
+        else{
+            request.predicate = categoryPredicate
+        }
+        
         do{
            toDoList = try context.fetch(request)
         }catch{
@@ -98,6 +117,8 @@ class ToDoListViewController: UITableViewController{
     }
 }
 
+//MARK: - Search Bar Methods
+
 extension ToDoListViewController: UISearchBarDelegate{
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
@@ -105,14 +126,13 @@ extension ToDoListViewController: UISearchBarDelegate{
         let request : NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()
         
         if let userSearch = searchBar.text{
-            request.predicate = NSPredicate(format: "taskDescription CONTAINS[cd] %@", userSearch)
+            let predicate = NSPredicate(format: "taskDescription CONTAINS[cd] %@", userSearch)
             request.sortDescriptors = [NSSortDescriptor(key: "taskDescription", ascending: true)]
-            print(request)
-            loadData(with: request)
+            loadData(with: request, predicate: predicate)
         }
     }
     
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String){
         if searchBar.text?.count == 0{
             loadData()
             DispatchQueue.main.async {

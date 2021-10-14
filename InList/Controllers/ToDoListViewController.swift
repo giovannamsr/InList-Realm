@@ -6,23 +6,20 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class ToDoListViewController: UITableViewController{
 
     @IBOutlet weak var searchBar: UISearchBar!
     
-    var toDoList = [ToDoItem]()
+    let realm = try! Realm()
+    var toDoList: Results<ToDoItem>?
     
     var selectedCategory: ToDoCategory?{
         didSet{
             loadData()
         }
     }
-    
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("ToDoItems.plist")
-    
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,16 +29,20 @@ class ToDoListViewController: UITableViewController{
 //MARK: - TableView Datasource Methods
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int{
-        return toDoList.count
+        return toDoList?.count ?? 1
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell{
         
-        let item = toDoList[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
         
-        cell.textLabel?.text = item.taskDescription
-        cell.accessoryType = item.isCompleted ? .checkmark : .none
-
+        if let item = toDoList?[indexPath.row]{
+            cell.textLabel?.text = item.taskDescription
+            cell.accessoryType = item.isCompleted ? .checkmark : .none
+        }
+        else{
+            cell.textLabel?.text = ""
+        }
+        
         return cell
     }
     
@@ -49,15 +50,34 @@ class ToDoListViewController: UITableViewController{
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath){
         
-        toDoList[indexPath.row].isCompleted = !toDoList[indexPath.row].isCompleted
-        saveData()
+        if let item = toDoList?[indexPath.row]{
+            do{
+                try realm.write{
+                    item.isCompleted = !item.isCompleted
+                }
+            }
+            catch{
+                print("Error updating item: \(error)")
+            }
+            
+        }
+        tableView.reloadData()
+        tableView.deselectRow(at: indexPath, animated: true)
     }
     
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath){
         if editingStyle == UITableViewCell.EditingStyle.delete {
-            context.delete(toDoList[indexPath.row])
-            toDoList.remove(at: indexPath.row)
-            saveData()
+            if let item = toDoList?[indexPath.row]{
+                do{
+                    try realm.write{
+                        realm.delete(item)
+                    }
+                }
+                catch{
+                    print("Error deleting item: \(error)")
+                }
+            }
+            tableView.reloadData()
         }
     }
     
@@ -69,15 +89,22 @@ class ToDoListViewController: UITableViewController{
         let alert = UIAlertController(title: "Add New Item", message: "", preferredStyle: .alert)
         
         let action = UIAlertAction(title: "Add", style: .default){ [self] (action) in
-            if let text = textField.text{
+            if let text = textField.text, let currentCategory = selectedCategory{
                 if text != ""{
-                    let userNewItem = ToDoItem(context: context)
-                    userNewItem.taskDescription = text
-                    userNewItem.itemCategory = self.selectedCategory
-                    self.toDoList.append(userNewItem)
-                    saveData()
+                    do{
+                        try realm.write{
+                            let userNewItem = ToDoItem()
+                            userNewItem.taskDescription = text
+                            userNewItem.date = Date()
+                            currentCategory.items.append(userNewItem)
+                        }
+                    }
+                    catch{
+                        print("Error writing data: \(error)")
+                    }
                 }
             }
+            tableView.reloadData()
         }
         alert.addTextField{ (alertTextField) in
             alertTextField.placeholder = "Description"
@@ -88,31 +115,9 @@ class ToDoListViewController: UITableViewController{
                   
     }
     
-    func saveData(){
-        do{
-            try context.save()
-        }catch{
-            print("Error saving data: \(error)")
-        }
-        tableView.reloadData()
-    }
-    
-    func loadData(with request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest(), predicate: NSPredicate? = nil){
+    func loadData(){
         
-        let categoryPredicate = NSPredicate(format: "itemCategory.categoryName MATCHES %@", selectedCategory!.categoryName!)
-        
-        if let searchPredicate = predicate{
-            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, searchPredicate])
-        }
-        else{
-            request.predicate = categoryPredicate
-        }
-        
-        do{
-           toDoList = try context.fetch(request)
-        }catch{
-            print("Error fetching data: \(error)")
-        }
+        toDoList = selectedCategory?.items.sorted(byKeyPath: "taskDescription", ascending: true)
         tableView.reloadData()
     }
 }
@@ -123,13 +128,10 @@ extension ToDoListViewController: UISearchBarDelegate{
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         
-        let request : NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()
-        
         if let userSearch = searchBar.text{
-            let predicate = NSPredicate(format: "taskDescription CONTAINS[cd] %@", userSearch)
-            request.sortDescriptors = [NSSortDescriptor(key: "taskDescription", ascending: true)]
-            loadData(with: request, predicate: predicate)
+            toDoList = toDoList?.filter("taskDescription CONTAINS[cd] %@", userSearch).sorted(byKeyPath: "date", ascending: true)
         }
+        tableView.reloadData()
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String){

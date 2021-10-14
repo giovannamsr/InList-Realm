@@ -6,15 +6,13 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class CategoryViewController: UITableViewController {
     
-    var categoryList = [ToDoCategory]()
+    let realm = try! Realm()
     
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Category.plist")
-    
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    var categoryList: Results<ToDoCategory>?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -24,14 +22,13 @@ class CategoryViewController: UITableViewController {
     //MARK: - TableView Datasource Methods
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int{
-        return categoryList.count
+        return categoryList?.count ?? 1
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let category = categoryList[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
         
-        cell.textLabel?.text = category.categoryName
+        cell.textLabel?.text = categoryList?[indexPath.row].categoryName ?? "No categories added"
         
         return cell
     }
@@ -46,19 +43,19 @@ class CategoryViewController: UITableViewController {
         if segue.identifier == "goToItemsView"{
             let destinationVC = segue.destination as! ToDoListViewController
             if let indexPath = tableView.indexPathForSelectedRow{
-                destinationVC.selectedCategory = categoryList[indexPath.row]
+                destinationVC.selectedCategory = categoryList?[indexPath.row]
             }
         }
         
     }
     
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath){
-        if editingStyle == UITableViewCell.EditingStyle.delete {
-            context.delete(categoryList[indexPath.row])
-            categoryList.remove(at: indexPath.row)
-            saveData()
-        }
-    }
+//    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath){
+//        if editingStyle == UITableViewCell.EditingStyle.delete {
+//            context.delete(categoryList[indexPath.row])
+//            categoryList.remove(at: indexPath.row)
+//            saveData()
+//        }
+//    }
     
     //MARK: - Data Manipulation Methods
     
@@ -69,10 +66,9 @@ class CategoryViewController: UITableViewController {
         let action = UIAlertAction(title: "Add", style: .default){ [self] (action) in
             if let text = textField.text{
                 if text != ""{
-                    let userNewCategory = ToDoCategory(context: context)
+                    let userNewCategory = ToDoCategory()
                     userNewCategory.categoryName = text
-                    self.categoryList.append(userNewCategory)
-                    saveData()
+                    saveData(category: userNewCategory)
                 }
             }
         }
@@ -84,21 +80,22 @@ class CategoryViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
     }
     
-    func saveData(){
+    func saveData(category: ToDoCategory){
         do{
-            try context.save()
-        }catch{
-            print("Error saving data: \(error)")
+            try realm.write{
+                realm.add(category)
+            }
         }
+        catch{
+            print("Error adding new category: \(error)")
+        }
+        
         tableView.reloadData()
     }
     
-    func loadData(with request: NSFetchRequest<ToDoCategory> = ToDoCategory.fetchRequest()){
-        do{
-           categoryList = try context.fetch(request)
-        }catch{
-            print("Error fetching data: \(error)")
-        }
+    func loadData(){
+        
+        categoryList = realm.objects(ToDoCategory.self)
         tableView.reloadData()
     }
 }

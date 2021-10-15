@@ -7,6 +7,7 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class ToDoListViewController: UITableViewController{
 
@@ -23,7 +24,21 @@ class ToDoListViewController: UITableViewController{
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        tableView.separatorStyle = .none
         searchBar.delegate = self
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        
+        if let colorHex = selectedCategory?.categoryColor{
+            if let color = UIColor(hexString: colorHex){
+                navigationController?.navigationBar.backgroundColor = color
+                navigationController?.navigationBar.tintColor = ContrastColorOf(color, returnFlat: true)
+                navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor: ContrastColorOf(color, returnFlat: true)]
+                title = selectedCategory!.categoryName
+                searchBar.barTintColor = color
+            }
+        }
     }
     
 //MARK: - TableView Datasource Methods
@@ -38,6 +53,12 @@ class ToDoListViewController: UITableViewController{
         if let item = toDoList?[indexPath.row]{
             cell.textLabel?.text = item.taskDescription
             cell.accessoryType = item.isCompleted ? .checkmark : .none
+            if let category = selectedCategory{
+                if let categoryColor = UIColor(hexString: category.categoryColor){
+                    cell.backgroundColor = categoryColor.darken(byPercentage: CGFloat(indexPath.row)/CGFloat(toDoList!.count))
+                    cell.textLabel?.textColor = ContrastColorOf(cell.backgroundColor ?? categoryColor, returnFlat: true)
+                }
+            }
         }
         else{
             cell.textLabel?.text = ""

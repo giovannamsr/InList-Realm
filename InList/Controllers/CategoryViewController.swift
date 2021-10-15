@@ -7,6 +7,7 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class CategoryViewController: UITableViewController {
     
@@ -16,7 +17,15 @@ class CategoryViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        tableView.separatorStyle = .none
+        print(UIColor.white.hexValue())
         loadData()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        navigationController?.navigationBar.backgroundColor = .black
+        navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
+        navigationController?.navigationBar.tintColor = UIColor.white
     }
     
     //MARK: - TableView Datasource Methods
@@ -24,11 +33,17 @@ class CategoryViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int{
         return categoryList?.count ?? 1
     }
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
         
         cell.textLabel?.text = categoryList?[indexPath.row].categoryName ?? "No categories added"
+        
+        if let categories = categoryList{
+            cell.backgroundColor = UIColor(hexString: categories[indexPath.row].categoryColor)
+            cell.textLabel?.textColor = ContrastColorOf(cell.backgroundColor!, returnFlat: true)
+        }
         
         return cell
     }
@@ -37,6 +52,7 @@ class CategoryViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         performSegue(withIdentifier: "goToItemsView", sender: self)
+        tableView.deselectRow(at: indexPath, animated: true)
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?){
@@ -75,6 +91,7 @@ class CategoryViewController: UITableViewController {
                 if text != ""{
                     let userNewCategory = ToDoCategory()
                     userNewCategory.categoryName = text
+                    userNewCategory.categoryColor = UIColor.randomFlat().hexValue()
                     saveData(category: userNewCategory)
                 }
             }

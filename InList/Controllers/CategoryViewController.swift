@@ -49,13 +49,20 @@ class CategoryViewController: UITableViewController {
         
     }
     
-//    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath){
-//        if editingStyle == UITableViewCell.EditingStyle.delete {
-//            context.delete(categoryList[indexPath.row])
-//            categoryList.remove(at: indexPath.row)
-//            saveData()
-//        }
-//    }
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath){
+        
+        if let category = categoryList?[indexPath.row]{
+            do{
+                try realm.write{
+                    realm.delete(category)
+                }
+            }
+            catch{
+                print("Error deleting category: \(error)")
+            }
+        }
+        tableView.reloadData()
+    }
     
     //MARK: - Data Manipulation Methods
     
